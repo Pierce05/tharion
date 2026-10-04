@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defaultDbPath, markAllWorkersDead, openDb } from '@tharion/db';
-import { llmFromEnv } from './ai';
 import { createApp } from './app';
 import { Supervisor } from './supervisor';
 
@@ -25,10 +24,10 @@ if (supervisor && process.env.NO_WORKER !== '1') supervisor.start();
 
 const webDist = resolve(ROOT, 'packages/web/dist');
 const staticDir = (readOnly || process.env.SERVE_WEB === '1') && existsSync(webDist) ? webDist : undefined;
-const llm = llmFromEnv();
 
-const server = createApp({ db, supervisor, readOnly, llm, staticDir }).listen(port, () => {
-  console.log(`[server] http://localhost:${port}  db=${dbPath}  readOnly=${readOnly}  ai=${llm ? llm.model : 'cached samples only'}`);
+
+const server = createApp({ db, supervisor, readOnly, staticDir }).listen(port, () => {
+  console.log(`[server] http://localhost:${port}  db=${dbPath}  readOnly=${readOnly}`);
 });
 
 process.on('unhandledRejection', (e) => console.error('[server] unhandledRejection', e));

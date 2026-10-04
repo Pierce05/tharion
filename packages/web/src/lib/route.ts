@@ -6,7 +6,6 @@ export interface Route {
   id: string | null;
 }
 
-const RE = /^#\/(build|run|rewind)(?:\/([^/?#]+))?/;
 
 function parse(hash: string): Route {
   const m = RE.exec(hash);

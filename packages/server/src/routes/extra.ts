@@ -2,7 +2,6 @@ import type { Express } from 'express';
 import { z } from 'zod';
 import { ForkError, forkRun, getLineage, getRun, getWorkflow, listRuns, type Db, type SqliteStore } from '@tharion/db';
 import { diffRuns, reduce, type Json, type RunEvent } from '@tharion/engine';
-import { AiUnavailable, DescribeFailed, describeWorkflow, investigate, type HistoryRun, type LlmClient } from '../ai';
 import { evidenceRunning, readEvidence, startTestRun } from '../evidence';
 import { HttpError, wrap } from '../http';
 import { jsonSchema } from '../schemas';
@@ -10,7 +9,6 @@ import { jsonSchema } from '../schemas';
 export interface ExtraDeps {
   db: Db;
   store: SqliteStore;
-  llm: LlmClient | null;
   readOnly: boolean;
 }
 
@@ -73,40 +71,8 @@ export function registerExtraRoutes(app: Express, d: ExtraDeps): void {
     }),
   );
 
-  // FR-A1
-  app.post(
-    '/api/runs/:id/investigate',
-    wrap(async (req, res) => {
-      const { run, wf } = loadRun(req.params.id as string);
-      const events = store.events(run.id);
-      if (reduce(wf, events).status !== 'failed') throw new HttpError(409, 'Only failed runs can be investigated');
-      const history: HistoryRun[] = listRuns(db, { workflowId: run.workflowId, limit: 30 })
-        .filter((r) => r.status === 'completed' && r.id !== run.id)
-        .slice(0, 3)
-        .map((r) => ({ runId: r.id, triggerPayload: r.triggerPayload, result: resultOf(store.events(r.id)) }));
-      try {
-        res.json(await investigate({ llm: d.llm, workflow: wf, runId: run.id, events, history }));
-      } catch (e) {
-        if (e instanceof AiUnavailable) throw new HttpError(503, e.message);
-        throw e;
-      }
-    }),
-  );
 
-  // FR-A2
-  app.post(
-    '/api/ai/describe',
-    wrap(async (req, res) => {
-      const body = z.object({ prompt: z.string().trim().min(3).max(2000) }).parse(req.body ?? {});
-      try {
-        res.json(await describeWorkflow(d.llm, body.prompt));
-      } catch (e) {
-        if (e instanceof AiUnavailable) throw new HttpError(503, e.message);
-        if (e instanceof DescribeFailed) throw new HttpError(422, e.message, { transcript: e.transcript });
-        throw e;
-      }
-    }),
-  );
+  
 
   // test evidence (Phase 7)
   app.get('/api/tests', (_req, res) => {

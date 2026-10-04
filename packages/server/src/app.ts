@@ -27,7 +27,6 @@ import {
   type Workflow,
   type WorkflowDefinition,
 } from '@tharion/engine';
-import type { LlmClient } from './ai';
 import { HttpError, wrap } from './http';
 import { registerExtraRoutes } from './routes/extra';
 import { definitionSchema, faultsSchema, jsonObjectSchema, workflowIdSchema } from './schemas';
@@ -38,14 +37,13 @@ export { HttpError } from './http';
 export interface AppDeps {
   db: Db;
   supervisor: Supervisor | null;
-  llm?: LlmClient | null;
   readOnly?: boolean;
   staticDir?: string;
 }
 
 const TERMINAL_EVENTS = new Set(['RUN_COMPLETED', 'RUN_FAILED', 'RUN_CANCELLED']);
 
-export function createApp({ db, supervisor, llm = null, readOnly = false, staticDir }: AppDeps): express.Express {
+export function createApp({ db, supervisor, readOnly = false, staticDir }: AppDeps): express.Express {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '1mb' }));
@@ -343,7 +341,7 @@ export function createApp({ db, supervisor, llm = null, readOnly = false, static
     }),
   );
 
-  registerExtraRoutes(app, { db, store, llm, readOnly });
+  registerExtraRoutes(app, { db, store, readOnly });
 
   // ---------- static web build (read-only / single-process deployments) ----------
   if (staticDir) {

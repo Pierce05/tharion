@@ -8,6 +8,7 @@ import {
   startRun,
 } from './actions';
 import { useUi } from '../store/ui';
+import { navigate } from '../lib/route';
 
 export interface Command {
   id: string;

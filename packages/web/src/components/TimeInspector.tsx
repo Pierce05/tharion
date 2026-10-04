@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Json, RunEvent, RunRecord, RunState, Workflow } from '@tharion/engine';
 import { ForkCard } from './ForkCard';
-import { InvestigateCard } from './InvestigateCard';
 import { JsonView } from './JsonView';
 import { SideBySide } from './SideBySide';
 import { TYPE_META } from '../lib/nodeMeta';
@@ -54,7 +53,6 @@ export function TimeInspector(p: Props) {
         </div>
       )}
 
-      {p.failed && <InvestigateCard runId={p.run.id} nodes={p.workflow.nodes} onJumpSeq={p.onJumpSeq} forkDisabled={p.readOnly} />}
 
       {node && ns ? (
         <>
