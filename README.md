@@ -1,6 +1,6 @@
 # THARION: the workflow engine that remembers
 
-LIVE DEMO - [tharion.onrender.com] 
+LIVE DEMO - (https://tharion.onrender.com)
 
 > *What if you could Ctrl+Z an automation after it already ran?*
 
