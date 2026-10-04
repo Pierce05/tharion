@@ -1,5 +1,6 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { randomBytes } from 'node:crypto';
+import { join } from 'node:path';
 import { z, ZodError } from 'zod';
 import {
   SqliteStore,
@@ -26,40 +27,39 @@ import {
   type Workflow,
   type WorkflowDefinition,
 } from '@tharion/engine';
+import type { LlmClient } from './ai';
+import { HttpError, wrap } from './http';
+import { registerExtraRoutes } from './routes/extra';
 import { definitionSchema, faultsSchema, jsonObjectSchema, workflowIdSchema } from './schemas';
 import type { Supervisor } from './supervisor';
+
+export { HttpError } from './http';
 
 export interface AppDeps {
   db: Db;
   supervisor: Supervisor | null;
+  llm?: LlmClient | null;
+  readOnly?: boolean;
+  staticDir?: string;
 }
-
-export class HttpError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-    readonly details?: unknown,
-  ) {
-    super(message);
-  }
-}
-
-type Handler = (req: Request, res: Response) => Promise<void> | void;
-const wrap =
-  (fn: Handler) =>
-  (req: Request, res: Response, next: NextFunction): void => {
-    Promise.resolve()
-      .then(() => fn(req, res))
-      .catch(next);
-  };
 
 const TERMINAL_EVENTS = new Set(['RUN_COMPLETED', 'RUN_FAILED', 'RUN_CANCELLED']);
 
-export function createApp({ db, supervisor }: AppDeps): express.Express {
+export function createApp({ db, supervisor, llm = null, readOnly = false, staticDir }: AppDeps): express.Express {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '1mb' }));
   const store = new SqliteStore(db);
+
+  if (readOnly) {
+    app.use('/api', (req, res, next) => {
+      if (req.method === 'GET' || req.method === 'HEAD' || /^\/runs\/[^/]+\/investigate$/.test(req.path)) {
+        next();
+        return;
+      }
+      res.status(403).json({ error: 'This deployment is read-only. Run the full demo locally to create runs, fork, or kill workers.' });
+    });
+  }
 
   async function launch(
     wf: Workflow,
@@ -290,6 +290,7 @@ export function createApp({ db, supervisor }: AppDeps): express.Express {
     }[];
     res.json({
       now: t,
+      readOnly,
       supervisor: supervisor?.status() ?? null,
       workers: listWorkers(db, 5).map((w) => ({
         ...w,
@@ -341,6 +342,17 @@ export function createApp({ db, supervisor }: AppDeps): express.Express {
       res.json({ autoRestart: body.enabled });
     }),
   );
+
+  registerExtraRoutes(app, { db, store, llm, readOnly });
+
+  // ---------- static web build (read-only / single-process deployments) ----------
+  if (staticDir) {
+    app.use(express.static(staticDir));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) next();
+      else res.sendFile(join(staticDir, 'index.html'));
+    });
+  }
 
   // ---------- errors ----------
   app.use((_req, res) => {

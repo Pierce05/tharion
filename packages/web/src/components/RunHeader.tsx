@@ -137,6 +137,7 @@ export function RunHeader({ workflow, run, chip, live }: Props) {
       ))}
 
       <button onClick={() => navigate('build', workflow.id)}>Build</button>
+        <button onClick={() => navigate('rewind', run.id)}>Rewind</button>
       <button onClick={() => navigate('run')}>Runs</button>
     </div>
   );

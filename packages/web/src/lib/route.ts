@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 
-export type Mode = 'build' | 'run' | 'rewind';
+export type Mode = 'build' | 'run' | 'rewind' | 'tests';
 export interface Route {
   mode: Mode;
   id: string | null;
@@ -13,6 +13,8 @@ function parse(hash: string): Route {
   if (!m) return { mode: 'build', id: null };
   return { mode: m[1] as Mode, id: m[2] ? decodeURIComponent(m[2]) : null };
 }
+
+const RE = /^#\/(build|run|rewind|tests)(?:\/([^/?#]+))?/;
 
 const subscribe = (cb: () => void): (() => void) => {
   window.addEventListener('hashchange', cb);

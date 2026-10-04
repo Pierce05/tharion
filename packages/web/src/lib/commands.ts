@@ -33,6 +33,7 @@ export function useCommands(): Command[] {
       { id: 'exp', label: 'Export workflow JSON', run: exportWorkflow },
       { id: 'imp', label: 'Import workflow JSON…', run: () => openModal('import') },
       { id: 'out', label: 'Show outbox', run: () => openModal('outbox') },
+      { id: 'tests', label: 'Show engine tests', run: () => navigate('tests') },
     ],
     [openModal],
   );

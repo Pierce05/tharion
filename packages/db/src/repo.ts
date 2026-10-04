@@ -1,6 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import type {
   Json,
+  Lineage,
+  LineageNode,
+  NewEvent,
   OutboxRow,
   RunFaults,
   RunRecord,
@@ -123,10 +126,13 @@ export interface CreateRunArgs {
   faults: RunFaults | null;
   parentRunId?: string;
   forkedAtNodeId?: string;
+  inputOverride?: Json;
+  /** Events appended right after RUN_STARTED, inside the same transaction (fork replay). */
+  replay?: (runId: string) => NewEvent[];
   idempotency?: { token: string; key: string };
 }
 
-/** Inserts the run row + RUN_STARTED (+ webhook delivery) atomically. Dedupes on (token, key). */
+/** Inserts the run row + RUN_STARTED (+ replay events, + webhook delivery) atomically. Dedupes on (token, key). */
 export function createRun(db: Db, a: CreateRunArgs): { run: RunRecord; deduped: boolean } {
   const { runId, deduped } = db
     .transaction((): { runId: string; deduped: boolean } => {
@@ -162,7 +168,8 @@ export function createRun(db: Db, a: CreateRunArgs): { run: RunRecord; deduped: 
           t,
         );
       }
-      new SqliteStore(db).append({
+      const store = new SqliteStore(db);
+      store.append({
         runId: id,
         nodeId: null,
         attempt: null,
@@ -172,8 +179,10 @@ export function createRun(db: Db, a: CreateRunArgs): { run: RunRecord; deduped: 
           triggerPayload: a.triggerPayload,
           ...(a.parentRunId ? { parentRunId: a.parentRunId } : {}),
           ...(a.forkedAtNodeId ? { forkedAtNodeId: a.forkedAtNodeId } : {}),
+          ...(a.inputOverride !== undefined ? { inputOverride: a.inputOverride } : {}),
         },
       });
+      for (const ev of a.replay?.(id) ?? []) store.append(ev);
       return { runId: id, deduped: false };
     })
     .immediate();
@@ -300,4 +309,32 @@ export function getHook(db: Db, token: string): { workflowId: string } | null {
     | { workflow_id: string }
     | undefined;
   return row ? { workflowId: row.workflow_id } : null;
+}
+
+// ---------- lineage (FR-T5) ----------
+export function getLineage(db: Db, runId: string): Lineage | null {
+  let cur = getRun(db, runId);
+  if (!cur) return null;
+  const climbed = new Set<string>([cur.id]);
+  while (cur.parentRunId && !climbed.has(cur.parentRunId)) {
+    const parent = getRun(db, cur.parentRunId);
+    if (!parent) break;
+    climbed.add(parent.id);
+    cur = parent;
+  }
+  const rootId = cur.id;
+  const nodes: LineageNode[] = [];
+  const queue = [rootId];
+  const visited = new Set<string>();
+  while (queue.length > 0) {
+    const id = queue.shift() as string;
+    if (visited.has(id)) continue;
+    visited.add(id);
+    const r = getRun(db, id);
+    if (!r) continue;
+    nodes.push({ id: r.id, parentRunId: r.parentRunId, forkedAtNodeId: r.forkedAtNodeId, status: r.status, createdAt: r.createdAt });
+    const kids = db.prepare('SELECT id FROM runs WHERE parent_run_id = ? ORDER BY created_at, rowid').pluck().all(id) as string[];
+    queue.push(...kids);
+  }
+  return { rootId, nodes };
 }

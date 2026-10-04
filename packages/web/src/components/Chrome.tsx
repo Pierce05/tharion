@@ -17,6 +17,9 @@ function WorkerPill() {
   if (error || !sys) {
     return <div className="pill lost" role="status"><span>{error ? 'api offline' : 'connecting…'}</span></div>;
   }
+    if (sys.readOnly) {
+        return <div className="pill" role="status" style={{ color: 'var(--amber)' }}><span>read-only demo · seeded runs</span></div>;
+    }
   const alive = sys.supervisor ? sys.supervisor.alive : sys.workers.some((w) => w.alive);
   const wid = sys.supervisor?.workerId ?? sys.workers[0]?.id ?? 'worker';
   const elapsed = now - fetchedAt;
@@ -132,6 +135,7 @@ export function Rail() {
       <button aria-label="Workflows" onClick={() => openModal('workflows')}><Icon name="list" /><small>wf</small></button>
       <button aria-label="Runs" onClick={() => navigate('run')}><Icon name="rows" /><small>runs</small></button>
       <button aria-label="Outbox" onClick={() => openModal('outbox')}><Icon name="inbox" /><small>out</small></button>
+      <button className={mode === 'tests' ? 'on' : ''} aria-label="Engine tests" aria-current={mode === 'tests'} onClick={() => goMode('tests')}><Icon name="check" /><small>tests</small></button>
     </nav>
   );
 }

@@ -162,3 +162,43 @@ table{width:100%;border-collapse:collapse;font:12px 'JetBrains Mono'}td,th{paddi
 .logrow{white-space:normal;word-break:break-word}.logrow.clk{cursor:pointer}.logrow.clk:hover{background:var(--ink2)}
 .proof{margin-top:10px;padding:12px;border-color:#3ddc9755;flex:none;max-height:180px;overflow:auto}
 #bRun.glow:not(:disabled){box-shadow:0 0 16px #ffb54766;border-color:var(--amber)}
+
+/* ===== PHASE 5: REWIND ===== */
+body[data-mode=rewind] .node-card.ok:not(.ph):not(.div),body[data-mode=rewind] .node-card.skip:not(.ph),body[data-mode=rewind] .node-card.pending:not(.ph){filter:saturate(.3) hue-rotate(-12deg)}
+body[data-mode=rewind] .edge:not(.live){filter:saturate(.3)}
+body[data-mode=rewind] .edge.live{stroke:var(--cyan);filter:drop-shadow(0 0 4px var(--cyan))}
+body[data-mode=rewind] .packet{fill:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan))}
+.node-card.div:after{content:"DIVERGED HERE";position:absolute;top:2px;right:8px;left:auto;height:auto;background:none;font:10px 'JetBrains Mono';color:var(--fork);animation:none}
+.glitchfx{position:absolute;inset:0;pointer-events:none;z-index:7;animation:rgbfx .22s forwards}
+@keyframes rgbfx{0%{box-shadow:inset 7px 0 0 #f0f9,inset -7px 0 0 #0ff9;opacity:1}100%{box-shadow:inset 0 0 0 transparent;opacity:0}}
+.dock{margin:0 12px 12px;padding:12px 16px;position:relative}
+.readout{position:absolute;right:16px;top:8px;font:500 18px 'JetBrains Mono';color:var(--cyan);display:flex;gap:12px;align-items:center}
+.readout button{padding:4px 10px;font-size:13px}
+.scrubber{position:relative;margin-left:112px;margin-top:8px;cursor:ew-resize;touch-action:none;user-select:none}
+.lane{position:absolute;left:0;right:0;height:11px;border-bottom:1px solid var(--line)}
+.lane>span{position:absolute;left:-112px;top:-2px;width:104px;font:11px 'JetBrains Mono';color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lane.sel>span{color:var(--t0)}
+.bar{position:absolute;height:7px;top:1px;border-radius:4px;opacity:.35}
+.tick{position:absolute;top:0;width:3px;height:11px;border-radius:2px;margin-left:-1px}
+.tick.rec:after{content:"";position:absolute;top:-13px;left:-4px;width:11px;height:12px;background:var(--cyan);clip-path:polygon(60% 0,10% 58%,46% 58%,32% 100%,90% 38%,54% 38%)}
+.playhead{position:absolute;top:-6px;bottom:-4px;width:2px;margin-left:-1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);pointer-events:none}
+.playhead:before{content:"";position:absolute;top:-4px;left:-5px;width:12px;height:12px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+.ruler{position:absolute;left:0;right:0;top:0;height:16px}.ruler b{position:absolute;top:-3px;transform:translateX(-50%);font:11px 'JetBrains Mono';color:var(--t1);font-weight:400;white-space:nowrap}
+.lin{position:absolute;right:14px;top:14px;padding:10px;z-index:4;max-width:360px;overflow:auto}
+.diff-table{position:absolute;inset:70px 24px 24px;z-index:7;padding:20px;overflow:auto}.ch{color:var(--fork)}
+.sbs{margin-top:12px}.sbs-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;margin-top:4px;background:var(--ink1);border:1px solid var(--line);border-radius:10px;padding:8px;max-height:260px;overflow:auto}
+.ln{font:11px/1.6 'JetBrains Mono';white-space:pre-wrap;word-break:break-word;color:var(--t1);padding:0 4px;border-radius:3px}.ln.del{background:#ff5c7326;color:#ffb3be}.ln.add{background:#3ddc9726;color:#a8f0cf}
+.fork-card{margin-top:14px;padding:14px;border-color:#a78bfa66;box-shadow:0 0 30px #a78bfa22}
+.fk{width:100%;background:var(--fork);color:#10062a;font-weight:600;border:0}.fk:hover:not(:disabled){background:#b9a1fb}
+.invest{margin-top:12px;padding:14px;border-color:#ffb54766}
+.split{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#05060acc;pointer-events:none}
+.side.rw{top:66px}
+
+/* ===== PHASE 6: DESCRIBE ===== */
+.dcard{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:9;padding:14px;width:min(560px,90%);max-height:50%;overflow:auto}
+
+/* ===== PHASE 7: TESTS PAGE ===== */
+.page{padding:24px 28px;overflow:auto;min-height:0}
+.bigcount{font-size:56px;font-weight:700;line-height:1.1;margin-top:10px}
+.tfile{margin-bottom:10px;padding:10px 14px}.tfile summary{cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none}
+.tfile .logrow{border:0;padding-left:4px}

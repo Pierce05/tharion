@@ -95,5 +95,6 @@ export async function startRun(): Promise<void> {
 
 export function goMode(mode: Mode): void {
   if (mode === 'build') return navigate('build', useWorkflow.getState().id);
+  if (mode === 'tests') return navigate('tests');
   navigate(mode, useUi.getState().lastRunId);
 }

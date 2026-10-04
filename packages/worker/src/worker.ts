@@ -73,7 +73,7 @@ export function createWorker(opts: WorkerOptions): Worker {
         return;
       }
 
-      const progressed = events.some((e) => e.type !== 'RUN_STARTED' && e.type !== 'NODE_REPLAYED');
+      const progressed = events.some((e) => e.type === 'NODE_STARTED');
       if (progressed) {
         store.append({ runId, nodeId: null, attempt: null, type: 'RUN_RECOVERED', data: { workerId: id } });
         log(`recovered ${runId}`);

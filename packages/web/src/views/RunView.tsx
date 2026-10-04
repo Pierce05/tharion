@@ -18,7 +18,7 @@ import { useUi } from '../store/ui';
 
 const statusColor = (s: string): string => (s === 'failed' ? 'var(--bad)' : s === 'completed' ? 'var(--ok)' : 'var(--amber)');
 
-function RunList() {
+export function RunList({ to = 'run' }: { to?: 'run' | 'rewind' }) {
   const [runs, setRuns] = useState<RunRecord[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
@@ -38,7 +38,7 @@ function RunList() {
             </>
           )}
           {runs?.map((r) => (
-            <button key={r.id} className="lrow" onClick={() => navigate('run', r.id)}>
+              <button key={r.id} className="lrow" onClick={() => navigate(to, r.id)}>
               <b className="m">{r.id}</b>
               <span className="chip" style={{ color: statusColor(r.status) }}>{r.status}</span>
               {r.dryRun && <span className="chip" style={{ color: 'var(--cyan)' }}>dry</span>}

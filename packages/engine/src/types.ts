@@ -131,7 +131,7 @@ interface EventBase {
 export type RunEventBody =
   | {
       type: 'RUN_STARTED';
-      data: { workflowVersion: number; triggerPayload: Json; parentRunId?: string; forkedAtNodeId?: string };
+            data: { workflowVersion: number; triggerPayload: Json; parentRunId?: string; forkedAtNodeId?: string; inputOverride?: Json };
     }
   | { type: 'NODE_SCHEDULED'; data: Record<string, never> }
   | { type: 'NODE_STARTED'; data: { input: Json } }

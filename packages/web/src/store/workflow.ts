@@ -37,6 +37,7 @@ interface WorkflowStore {
   issues: ValidationIssue[];
   samples: Record<string, NodeSample>;
   saving: boolean;
+  epoch: number;
 
   bootstrap: (routeId: string | null) => Promise<void>;
   load: (id: string, version?: number) => Promise<void>;
@@ -50,6 +51,7 @@ interface WorkflowStore {
   removeNodes: (ids: string[]) => void;
   removeEdges: (ids: string[]) => void;
   connect: (c: { source: string; sourceHandle: Handle; target: string }) => string | null;
+  replaceDefinition: (def: WorkflowDefinition, name?: string) => void;
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -105,6 +107,7 @@ export const useWorkflow = create<WorkflowStore>((set, get) => {
     issues: [],
     samples: {},
     saving: false,
+    epoch: 0,
 
     async bootstrap(routeId) {
       const s = get();
@@ -167,6 +170,11 @@ export const useWorkflow = create<WorkflowStore>((set, get) => {
 
     rename: (name) => set({ name }),
     select: (selectedNodeId) => set({ selectedNodeId }),
+
+    replaceDefinition(def, name) {
+        set((s) => ({ nodes: def.nodes, edges: def.edges, name: name ?? s.name, selectedNodeId: null, epoch: s.epoch + 1 }));
+        scheduleValidate();
+    },
 
     addNode(type, position) {
       const s = get();

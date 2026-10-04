@@ -12,3 +12,6 @@ export * from './executor';
 export * from './samples';
 export * from './templates';
 export * from './logs';
+export * from './fork';
+export * from './diff';
+export * from './apiTypes';

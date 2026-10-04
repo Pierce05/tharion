@@ -40,7 +40,7 @@ export function backoffMs(policy: RetryPolicy, attempt: number): number {
 
 export function startRun(
   store: RunStore,
-  args: { runId: string; workflowVersion: number; triggerPayload: Json; parentRunId?: string; forkedAtNodeId?: string },
+    args: { runId: string; workflowVersion: number; triggerPayload: Json; parentRunId?: string; forkedAtNodeId?: string; inputOverride?: Json },
 ): RunEvent {
   const { runId, ...data } = args;
   return store.append({ runId, nodeId: null, attempt: null, type: 'RUN_STARTED', data });
@@ -101,7 +101,7 @@ function commitSuccess(deps: ExecutorDeps, node: WorkflowNode, attempt: number, 
   deps.store.commitSuccess(ev, { result: outcome.output, ...outcome.effect });
 }
 
-async function runNode(deps: ExecutorDeps, idx: GraphIndex, node: WorkflowNode, triggerPayload: Json): Promise<void> {
+async function runNode(deps: ExecutorDeps, idx: GraphIndex, node: WorkflowNode, triggerPayload: Json, override: Json | undefined,): Promise<void> {
   const { store, runId, workflow } = deps;
   const now = deps.now ?? Date.now;
   const sleep = deps.sleep ?? defaultSleep;
@@ -110,7 +110,7 @@ async function runNode(deps: ExecutorDeps, idx: GraphIndex, node: WorkflowNode, 
   const state = reduce(workflow, store.events(runId));
   const ns = state.nodes[node.id];
   if (!ns) return;
-  const input = node.type === 'trigger' ? triggerPayload : nodeInput(idx, state, node);
+  const input = override !== undefined ? override : node.type === 'trigger' ? triggerPayload : nodeInput(idx, state, node);
 
   // Resume: crashed or retrying with no attempts left (FR-D4: the counter never resets).
   if ((ns.status === 'retrying' || ns.status === 'running') && ns.attempt >= policy.maxAttempts) {
@@ -171,7 +171,8 @@ export async function executeRun(deps: ExecutorDeps): Promise<RunState> {
   const first = store.events(runId)[0];
   if (!first || first.type !== 'RUN_STARTED') throw new Error(`run ${runId} has no RUN_STARTED event`);
   const triggerPayload = first.data.triggerPayload;
-
+  const forkedAt = first.data.forkedAtNodeId;
+  const override = first.data.inputOverride;
   const running = new Map<string, Promise<void>>();
   const box: { hasFatal: boolean; error: unknown } = { hasFatal: false, error: null };
 
@@ -198,7 +199,7 @@ export async function executeRun(deps: ExecutorDeps): Promise<RunState> {
       }
       for (const node of ready) {
         if (running.has(node.id)) continue;
-        const task = runNode(deps, idx, node, triggerPayload).then(
+                const task = runNode(deps, idx, node, triggerPayload, node.id === forkedAt ? override : undefined).then(
           () => undefined,
           (error: unknown) => {
             box.hasFatal = true;

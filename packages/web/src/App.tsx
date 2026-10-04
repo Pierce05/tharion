@@ -8,6 +8,7 @@ import { useUi } from './store/ui';
 import { BuildView } from './views/BuildView';
 import { RewindView } from './views/RewindView';
 import { RunView } from './views/RunView';
+import { TestsView } from './views/TestsView';
 
 function useGlobalKeys(): void {
   useEffect(() => {
@@ -29,6 +30,7 @@ function useGlobalKeys(): void {
       if (e.key === '1') goMode('build');
       else if (e.key === '2') goMode('run');
       else if (e.key === '3') goMode('rewind');
+      else if (e.key === '4') goMode('tests');
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
@@ -51,6 +53,7 @@ export function App() {
         {mode === 'build' && <BuildView />}
         {mode === 'run' && <RunView />}
         {mode === 'rewind' && <RewindView />}
+        {mode === 'tests' && <TestsView />}
       </main>
       <CommandPalette />
       <ModalHost />
