@@ -22,7 +22,9 @@ pnpm seed:demo     # resets the local DB and seeds 3 templates + a real run hist
 pnpm dev:all       # API + supervised worker on :3001, web on :5173
 ```
 
-Open <http://localhost:5173>. Optional: `export ANTHROPIC_API_KEY=...` before `pnpm dev:all` for live AI; without a key the AI features use cached samples (clearly labeled in the UI).
+Open <http://localhost:5173>. 
+
+Optional: `export ANTHROPIC_API_KEY=...` before `pnpm dev:all` for live AI; without a key the AI features use cached samples (clearly labeled in the UI).
 
 ```bash
 pnpm test            # full suite (includes chaos tests that spawn real worker processes)
