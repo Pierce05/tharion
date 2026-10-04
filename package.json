@@ -1,0 +1,32 @@
+{
+  "name": "tharion",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx packages/server/src/index.ts",
+    "dev:web": "pnpm --filter @tharion/web dev",
+    "dev:all": "concurrently -n api,web -c yellow,cyan \"pnpm dev\" \"pnpm dev:web\"",
+    "worker": "tsx packages/worker/src/main.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc -p packages/web --noEmit && node scripts/check-no-any.mjs",
+    "db:migrate": "tsx packages/db/src/cli.ts migrate",
+    "db:reset": "tsx packages/db/src/cli.ts reset",
+    "seed:demo": "tsx packages/db/src/seed.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.0",
+    "concurrently": "^9.1.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@tharion/tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tharion/db": "workspace:*",
+    "@tharion/engine": "workspace:*",
+    "@tharion/server": "workspace:*",
+    "@tharion/worker": "workspace:*"
+  }
+}
